@@ -1,3 +1,3 @@
-module github.com/caresle/key-value-store
+module github.com/caresle/kvstore
 
 go 1.25.5
