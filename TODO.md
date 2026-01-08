@@ -15,7 +15,7 @@
 ## Implementation Phases
 
 ### Phase 1: Foundation (Start Here)
-- [ ] Initialize Go module: `go mod init kvstore`
+- [x] Initialize Go module: `go mod init kvstore`
 - [ ] Create basic Store struct with in-memory hash map
 - [ ] Implement Get/Set/Delete without persistence (just `sync.RWMutex` + `map[string][]byte`)
 - [ ] Write basic tests to verify operations work and are thread-safe (`go test -race`)
