@@ -1,5 +1,5 @@
 test:
-	go test ./..
+	go test ./
 
 test_race:
-	go test -race ./..
+	go test -race ./
