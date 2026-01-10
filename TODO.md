@@ -18,7 +18,7 @@
 - [x] Initialize Go module: `go mod init kvstore`
 - [x] Create basic Store struct with in-memory hash map
 - [x] Implement Get/Set/Delete without persistence (just `sync.RWMutex` + `map[string][]byte`)
-- [ ] Write basic tests to verify operations work and are thread-safe (`go test -race`)
+- [x] Write basic tests to verify operations work and are thread-safe (`go test -race`)
 
 **Goal**: Get comfortable with Go maps, mutexes, and testing before adding complexity.
 
