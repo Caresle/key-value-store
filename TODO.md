@@ -25,8 +25,8 @@
 ---
 
 ### Phase 2: WAL Entry Encoding
-- [ ] Design the Entry struct (operation, timestamp, key, value)
-- [ ] Implement binary encoding/decoding functions (use `encoding/binary` package)
+- [x] Design the Entry struct (operation, timestamp, key, value)
+- [x] Implement binary encoding/decoding functions (use `encoding/binary` package)
 - [ ] Write tests for encoding/decoding (ensure round-trip works)
 
 **Goal**: Understand binary serialization before working with files.
