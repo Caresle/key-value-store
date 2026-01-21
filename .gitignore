@@ -38,3 +38,7 @@ build/
 # Debug files
 debug
 __debug_bin
+
+# testing
+test-data/
+testing-data/
