@@ -296,3 +296,92 @@ func TestEntryMultipleEncodeDecode(t *testing.T) {
 		}
 	}
 }
+
+func TestEntryCRC32Validation(t *testing.T) {
+	original := NewSetEntry("test-key", []byte("test-value"))
+
+	var buf bytes.Buffer
+	if err := original.Encode(&buf); err != nil {
+		t.Fatalf("Encode failed: %v", err)
+	}
+
+	// Decode should succeed with valid CRC32
+	decoded, err := DecodeEntry(bytes.NewReader(buf.Bytes()))
+	if err != nil {
+		t.Fatalf("Decode failed: %v", err)
+	}
+
+	if decoded.Key != original.Key {
+		t.Errorf("Key mismatch: got %q, want %q", decoded.Key, original.Key)
+	}
+}
+
+func TestEntryCRC32CorruptedValue(t *testing.T) {
+	original := NewSetEntry("test-key", []byte("test-value"))
+
+	var buf bytes.Buffer
+	if err := original.Encode(&buf); err != nil {
+		t.Fatalf("Encode failed: %v", err)
+	}
+
+	// Corrupt one byte in the value section (near the end but before CRC32)
+	data := buf.Bytes()
+	if len(data) < 10 {
+		t.Fatal("Encoded data too short")
+	}
+	// Flip a bit in the middle of the data
+	data[len(data)-10] ^= 0xFF
+
+	// Decode should fail with checksum mismatch
+	_, err := DecodeEntry(bytes.NewReader(data))
+	if err == nil {
+		t.Error("Expected checksum error for corrupted data, got nil")
+	}
+	if !strings.Contains(err.Error(), "checksum mismatch") {
+		t.Errorf("Expected 'checksum mismatch' error, got: %v", err)
+	}
+}
+
+func TestEntryCRC32CorruptedChecksum(t *testing.T) {
+	original := NewSetEntry("test-key", []byte("test-value"))
+
+	var buf bytes.Buffer
+	if err := original.Encode(&buf); err != nil {
+		t.Fatalf("Encode failed: %v", err)
+	}
+
+	// Corrupt the checksum itself (last 4 bytes)
+	data := buf.Bytes()
+	if len(data) < 4 {
+		t.Fatal("Encoded data too short")
+	}
+	// Flip bits in the checksum
+	data[len(data)-1] ^= 0xFF
+
+	// Decode should fail with checksum mismatch
+	_, err := DecodeEntry(bytes.NewReader(data))
+	if err == nil {
+		t.Error("Expected checksum error for corrupted checksum, got nil")
+	}
+	if !strings.Contains(err.Error(), "checksum mismatch") {
+		t.Errorf("Expected 'checksum mismatch' error, got: %v", err)
+	}
+}
+
+func TestEntryCRC32TruncatedEntry(t *testing.T) {
+	original := NewSetEntry("test-key", []byte("test-value"))
+
+	var buf bytes.Buffer
+	if err := original.Encode(&buf); err != nil {
+		t.Fatalf("Encode failed: %v", err)
+	}
+
+	// Truncate the entry (missing checksum)
+	truncated := buf.Bytes()[:len(buf.Bytes())-2]
+
+	// Decode should fail (unable to read checksum)
+	_, err := DecodeEntry(bytes.NewReader(truncated))
+	if err == nil {
+		t.Error("Expected error for truncated entry, got nil")
+	}
+}
