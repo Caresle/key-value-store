@@ -156,7 +156,7 @@ func TestEntryDeleteOperation(t *testing.T) {
 		t.Errorf("Key mismatch: got %q, want %q", decoded.Key, original.Key)
 	}
 
-	if decoded.Value != nil && len(decoded.Value) != 0 {
+	if len(decoded.Value) != 0 {
 		t.Errorf("Expected nil/empty value for delete, got %q", decoded.Value)
 	}
 }
