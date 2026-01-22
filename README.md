@@ -1,5 +1,7 @@
 # Key Value Store
 
+> Project used to learn more about vibe/agentic coding
+
 A persistent, thread-safe key-value store implemented in Go with Write-Ahead Logging (WAL) and snapshot support for durability and fast recovery.
 
 ## Features
