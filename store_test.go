@@ -164,11 +164,24 @@ func TestStoreRecoveryAfterCleanShutdown(t *testing.T) {
 	}
 	defer store2.Close()
 
-	// Data is LOST because WAL was truncated and no snapshot exists yet
-	// This demonstrates why we need snapshots (Phase 5)
-	if store2.Len() != 0 {
-		t.Logf("Note: Data present after clean shutdown (WAL not truncated or snapshot exists)")
-		t.Logf("Store has %d keys", store2.Len())
+	// Data should be recovered from snapshot
+	if store2.Len() != 2 {
+		t.Errorf("Expected 2 keys after clean shutdown, got %d", store2.Len())
+	}
+
+	// Verify data integrity
+	value1, exists1 := store2.Get("key1")
+	if !exists1 {
+		t.Error("key1 not found after clean shutdown recovery")
+	} else if string(value1) != "value1" {
+		t.Errorf("key1 value mismatch: got %q, want 'value1'", value1)
+	}
+
+	value2, exists2 := store2.Get("key2")
+	if !exists2 {
+		t.Error("key2 not found after clean shutdown recovery")
+	} else if string(value2) != "value2" {
+		t.Errorf("key2 value mismatch: got %q, want 'value2'", value2)
 	}
 }
 

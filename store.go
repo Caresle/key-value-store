@@ -31,14 +31,21 @@ func OpenWithConfig(config Config) (*Store, error) {
 		return nil, fmt.Errorf("failed to open WAL: %w", err)
 	}
 
-	// Create store
+	// Load snapshot if exists
+	data, err := loadSnapshot(config.DataDir)
+	if err != nil {
+		wal.Close()
+		return nil, fmt.Errorf("failed to load snapshot: %w", err)
+	}
+
+	// Create store with snapshot data
 	store := &Store{
-		data:   make(map[string][]byte),
+		data:   data,
 		wal:    wal,
 		config: config,
 	}
 
-	// Replay WAL to recover state
+	// Replay WAL to recover state (applies operations after snapshot)
 	err = wal.Replay(func(entry *Entry) error {
 		// No lock needed - single-threaded during recovery
 		switch entry.Operation {
@@ -106,7 +113,13 @@ func (s *Store) Close() error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	// Truncate WAL (clean shutdown = no need to replay on next open)
+	// Write snapshot (fail-safe: if snapshot fails, preserve WAL)
+	if err := writeSnapshot(s.config.DataDir, s.data); err != nil {
+		s.wal.Close() // Try to close WAL anyway
+		return fmt.Errorf("snapshot write failed (WAL preserved): %w", err)
+	}
+
+	// Truncate WAL only after successful snapshot
 	if err := s.wal.Truncate(); err != nil {
 		s.wal.Close() // Try to close anyway
 		return fmt.Errorf("WAL truncate failed: %w", err)
