@@ -1,5 +1,18 @@
 # Key-Value Store Implementation Roadmap
 
+## Current Status: Phase 5 Complete ✅
+
+**Latest Achievement**: Snapshot functionality fully implemented and tested!
+- ✅ Clean shutdown now preserves data via snapshots
+- ✅ Fast recovery on startup (load snapshot instead of replaying entire WAL)
+- ✅ CRC32 validation for corruption detection
+- ✅ Atomic writes with fail-safe error handling
+- ✅ All tests passing including race detector
+
+**Next Up**: Phase 6 - Polish (example program, documentation improvements)
+
+---
+
 ## Design Decisions Summary
 
 ✅ **Module name**: `kvstore`  
@@ -34,31 +47,38 @@
 ---
 
 ### Phase 3: Write-Ahead Log
-- [ ] Implement WAL struct with file handle
-- [ ] Implement Append() method to write entries to disk
-- [ ] Implement Read() method to replay entries from disk
-- [ ] Write WAL tests (create, append, read back)
+- [x] Implement WAL struct with file handle
+- [x] Implement Append() method to write entries to disk
+- [x] Implement Read() method to replay entries from disk
+- [x] Write WAL tests (create, append, read back)
 
 **Goal**: Get persistence working for individual operations.
 
 ---
 
 ### Phase 4: Integration
-- [ ] Connect Store to WAL (call WAL.Append in Set/Delete)
-- [ ] Implement recovery logic in Open() to replay WAL
-- [ ] Test crash recovery (write data, close without snapshot, reopen)
+- [x] Connect Store to WAL (call WAL.Append in Set/Delete)
+- [x] Implement recovery logic in Open() to replay WAL
+- [x] Test crash recovery (write data, close without snapshot, reopen)
 
 **Goal**: Ensure durability - data survives restarts.
 
 ---
 
-### Phase 5: Snapshots
-- [ ] Implement snapshot writing (serialize entire map to file)
-- [ ] Implement snapshot loading (deserialize on startup)
-- [ ] Integrate with Close() method (snapshot before shutdown)
-- [ ] Test clean shutdown recovery (should load snapshot, not replay WAL)
+### Phase 5: Snapshots ✅ COMPLETE
+- [x] Implement snapshot writing (serialize entire map to file)
+- [x] Implement snapshot loading (deserialize on startup)
+- [x] Integrate with Close() method (snapshot before shutdown)
+- [x] Test clean shutdown recovery (should load snapshot, not replay WAL)
 
 **Goal**: Fast recovery on clean shutdowns.
+
+**Implementation Details**:
+- Binary format with magic number 0x4B565350 ("KVSP")
+- CRC32 checksums for header and each entry
+- Atomic writes using temp file + rename
+- Fail-safe error handling (preserves WAL if snapshot fails)
+- Empty map returned if no snapshot exists (not an error)
 
 ---
 
